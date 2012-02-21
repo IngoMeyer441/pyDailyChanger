@@ -13,7 +13,8 @@ DAY_THRESHOLD = 1       # Anzahl der Tage, die mindestens vergangen sein muessen
 FILE_TYPE_LIST = ['.bmp', '.jpg', '.jpeg', '.png']
 
 # cal_pos_X == -1 bedeutet, dass cal_pos_Y die Position des Kalenders per Konstante angibt
-STD_CONFIG = {'main':      {'dest_file': 'wallpaper.bmp', 'mask_color': (0, 0, 0), 'stretch': False, 'last_wallpaper_image': ''},
+STD_CONFIG = {'main':      {'dest_file': 'wallpaper.bmp', 'mask_color': (0, 0, 0), 'stretch': False, 'keep_aspect_ratio': True,
+                            'last_wallpaper_image': ''},
               'calendar' : {'draw_cal': False, 'appointment_descriptions_of_next_days': 7,
                             'cal_pos': (-1.0, wallpaper_setter.CAL_BOTTOM_RIGHT),
                             'cal_size': (0.25, 0.25), 'cal_alpha': 153,

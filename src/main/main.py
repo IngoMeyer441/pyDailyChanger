@@ -25,6 +25,7 @@ def run_main():
                    cfg.main.dest_file, 
                    wx.Colour(*cfg.main.mask_color),
                    cfg.main.stretch, 
+                   cfg.main.keep_aspect_ratio,
                    cfg.calendar.draw_cal,
                    cfg.calendar.appointment_descriptions_of_next_days,
                    util.get_appointment_list(APPOINTMENTS_CONFIG_FILE),

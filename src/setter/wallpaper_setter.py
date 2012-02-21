@@ -19,7 +19,8 @@ class WallpaperSetter():
                  source_file, 
                  dest_file, 
                  mask_color=wx.BLACK, 
-                 stretch=False, 
+                 stretch=False,
+                 keep_aspect_ratio=True, 
                  draw_cal=True,
                  appointment_descriptions_of_next_days=7,
                  appointment_list = [], 
@@ -37,7 +38,7 @@ class WallpaperSetter():
                  cal_appointment_color=wx.GREEN):
         
         self.dest_file = dest_file
-        self.w_creator = WallpaperCreator(source_file, mask_color, stretch, draw_cal, appointment_descriptions_of_next_days,
+        self.w_creator = WallpaperCreator(source_file, mask_color, stretch, keep_aspect_ratio, draw_cal, appointment_descriptions_of_next_days,
                                           appointment_list, cal_pos, cal_size, cal_alpha,
                                           cal_heading_font_desc, cal_wday_font_desc, cal_mday_font_desc,
                                           cal_font_color, cal_sunday_font_color, cal_line_color, cal_day_colors,
@@ -69,7 +70,8 @@ class WallpaperCreator():
     def __init__(self, 
                  source_file='', 
                  mask_color=wx.BLACK, 
-                 stretch=False, 
+                 stretch=False,
+                 keep_aspect_ratio=True,
                  draw_cal=True,
                  appointment_descriptions_of_next_days=7,
                  appointment_list = [],
@@ -95,6 +97,7 @@ class WallpaperCreator():
         self.source_file = source_file
         self.mask_color = mask_color
         self.stretch = stretch
+        self.keep_aspect_ratio = keep_aspect_ratio
         self.draw_cal = draw_cal
         self.appointment_descriptions_of_next_days = appointment_descriptions_of_next_days
         self.appointment_list = appointment_list
@@ -121,9 +124,9 @@ class WallpaperCreator():
             return None
         
         # Hintergrundbild vorbereiten
-        best_size = self.__get_optimal_size(w_im, self.stretch)
+        best_size = self.__get_optimal_size(w_im, self.stretch, self.keep_aspect_ratio)
         # Muss ein Resize vorgenommen werden?
-        if best_size:
+        if best_size is not None:
             w_im.Rescale(*best_size, quality=wx.IMAGE_QUALITY_HIGH)
             real_size = best_size
         else:
@@ -181,7 +184,7 @@ class WallpaperCreator():
     def set_source_file(self, file):
         self.source_file = file
                 
-    def __get_optimal_size(self, im, stretch=False):
+    def __get_optimal_size(self, im, stretch=False, keep_aspect_ratio=True):
         '''
         Liefert die optimale Groesse des Bildes bzw. None, falls kein Rescale notwendig ist.
         '''
@@ -195,12 +198,15 @@ class WallpaperCreator():
                 if (im_size[0] == self.screen_size[0] and im_size[1] <= self.screen_size[1]) or (im_size[1] == self.screen_size[1] and im_size[0] <= self.screen_size[0]):
                     size = None
                 else:
-                    im_format = float(im_size[0]) / im_size[1]
-                    screen_format = float(self.screen_size[0]) / self.screen_size[1]
-                    if im_format >= screen_format:
-                        size = (self.screen_size[0], self.screen_size[0] / im_format)
+                    if keep_aspect_ratio:
+                        im_format = float(im_size[0]) / im_size[1]
+                        screen_format = float(self.screen_size[0]) / self.screen_size[1]
+                        if im_format >= screen_format:
+                            size = (self.screen_size[0], self.screen_size[0] / im_format)
+                        else:
+                            size = (self.screen_size[1] * im_format, self.screen_size[1])
                     else:
-                        size = (self.screen_size[1] * im_format, self.screen_size[1])
+                        size = tuple(self.screen_size)
                 break
             else:
                 if (im_size[0] <= self.screen_size[0]) and (im_size[1] <= self.screen_size[1]):
@@ -208,5 +214,6 @@ class WallpaperCreator():
                     break
                 else:
                     stretch = True
+                    keep_aspect_ratio = True
         
         return size
