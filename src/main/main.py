@@ -8,9 +8,6 @@ from config.config import *
 def run_main():
     passed_days = util.get_number_of_passed_days(PASSED_DAYS_CONFIG_FILE)
     
-    print util.get_appointment_list(APPOINTMENTS_CONFIG_FILE)
-    sys.exit()
-    
     if passed_days is None or passed_days >= DAY_THRESHOLD:     # ansonten terminiere
         app = wx.PySimpleApp()
         cfg = get_config_parser()
