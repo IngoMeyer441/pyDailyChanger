@@ -57,25 +57,43 @@ def get_number_of_passed_days(file):
 
 def get_appointment_list(file):
     '''
-    Liest aus einer Datei eine Liste von Terminen. Ein Termin umfasst eine Zeile und hat folgendes Format:
-    yyyy-mm-dd: <Beschreibung> (keine Zeilenumbrueche). Rueckgabe der Termine geschieht im Format:
-    ((yyyy, mm, dd), Beschreibung) und die Listeneintraege sind nach Datumsangaben sortiert.
+    Liest aus einer Datei eine Liste von Termintagen. Ein Termintag umfasst mindestens zwei Zeilen 
+    und hat folgendes Format:
+    yyyy-mm-dd: \n <whitespace> <Beschreibung zu Termin 1> \n <whitespace> <Beschreibung zu Termin 2> \n ....
+    Rueckgabe der Termine geschieht im Format:
+    ((yyyy, mm, dd), Beschreibung1, Beschreibung2, ...) und die Listeneintraege sind nach Datumsangaben sortiert.
+    Kommentare beginnen mit "#".
     '''
     
     appointment_list = []
     with open(file, 'r') as f:
+        within_block = False
+        read_date_line_before = False
+        date_tuple = (None, )
+        current_descs = []
+        delim_pos = -1
         for i, line in enumerate(f):
-            delim_pos = line.find(':')
-            if delim_pos < 0:
-                raise ValueError(': missing in line number %d.' % i)
-            description = line[delim_pos+1:].strip()
-            try:
-                date_tuple =  tuple(map(int, line[:delim_pos].split('-')))
-                if len(date_tuple) != 3:
-                    raise ValueError
-            except ValueError:
-                raise ValueError('Invalid date format.')
-            appointment_list.append(((date_tuple), description))
+            if not line.startswith('#'):
+                within_block = line[0].isspace()
+                if not within_block:
+                    if read_date_line_before and len(current_descs) > 0:
+                        appointment_list.append(tuple([date_tuple] + current_descs))
+                    delim_pos = line.find(':')
+                    if delim_pos < 0:
+                        raise ValueError(': missing in line number %d.' % i)
+                    try:
+                        date_tuple =  tuple(map(int, line[:delim_pos].split('-')))
+                        if len(date_tuple) != 3:
+                            raise ValueError
+                    except ValueError:
+                        raise ValueError('Invalid date format (line %d).' % i)
+                    current_descs = []
+                    read_date_line_before = True
+                else:
+                    current_descs.append(line.strip())
+                    
+        if read_date_line_before and len(current_descs) > 0:
+            appointment_list.append(tuple([date_tuple] + current_descs))
     
     # 3-stufige Sortierung: primaer Jahre, sekundaer Monate, tertiaer Tage
     for i in (2, 1, 0):
