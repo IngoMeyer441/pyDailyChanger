@@ -78,15 +78,28 @@ def get_appointment_list(file):
                 if not within_block:
                     if read_date_line_before and len(current_descs) > 0:
                         appointment_list.append(tuple([date_tuple] + current_descs))
-                    delim_pos = line.find(':')
+                    delim_pos = line.find(',')
                     if delim_pos < 0:
-                        raise ValueError(': missing in line number %d.' % i)
+                        has_color = False
+                        delim_pos = line.find(':')
+                        if delim_pos < 0:
+                            raise ValueError(': missing in line number %d.' % i)
+                    else:
+                        has_color = True
                     try:
                         date_tuple =  tuple(map(int, line[:delim_pos].split('-')))
                         if len(date_tuple) != 3:
                             raise ValueError
                     except ValueError:
                         raise ValueError('Invalid date format (line %d).' % i)
+                    if has_color:
+                        delim2_pos = line.find(':')
+                        if delim2_pos < 0:
+                            raise ValueError(': missing in line number %d.' % i)
+                        color = line[delim_pos+1:delim2_pos].strip().lower()
+                        date_tuple = tuple(list(date_tuple) + [color])
+                    else:
+                        date_tuple = tuple(list(date_tuple) + ['default'])
                     current_descs = []
                     read_date_line_before = True
                 else:
