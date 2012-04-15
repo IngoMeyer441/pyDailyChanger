@@ -15,10 +15,10 @@ is_leap_year = lambda year: (year % 400 == 0) or (year % 100 != 0 and year % 4 =
 
 
 class CalendarImage:
-    def __init__(self, date=(2010, 1, 1), size=(500, 300), appointment_descriptions_of_next_days=7, appointment_list=[],
-                 heading_font_desc=(wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL), 
-                 wday_font_desc=(wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL),
-                 mday_font_desc=(wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL),
+    def __init__(self, date=(2010, 1, 1), size=(500, 300), appointment_list=[],
+                 heading_font_desc='Arial 10', 
+                 wday_font_desc='Arial 10',
+                 mday_font_desc='Arial 10',
                  font_color=wx.WHITE, sunday_font_color=wx.RED, line_color=wx.WHITE, 
                  day_colors=(wx.Colour(255, 128, 0), wx.Colour(255, 128, 0)), 
                  background_colors=(wx.Colour(0, 3, 153), wx.Colour(59, 136, 242)),
@@ -35,9 +35,7 @@ class CalendarImage:
 
         self.cal_image = None
         self.size = size
-        self.appointment_descriptions_of_next_days = appointment_descriptions_of_next_days
-        self.appointment_list = appointment_list
-        self.appointment_dict = dict(appointment_list)
+        self.appointment_list = zip(*appointment_list)[0]
         self.heading_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self.heading_font.SetNativeFontInfoFromString(heading_font_desc)
         self.wday_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
@@ -126,7 +124,7 @@ class CalendarImage:
             x, y = (x + (cell_width - extent[0]) / 2, y + (cell_height - extent[1]) / 2)
             dc.DrawTextPoint(str(i), (x, y))
             # Evtl. Terminmarkierung eintragen:
-            if (self.given_date.tm_year, self.given_date.tm_mon, i) in self.appointment_dict:
+            if (self.given_date.tm_year, self.given_date.tm_mon, i) in self.appointment_list:
                 dc.SetPen(wx.Pen(self.appointment_color))
                 x, y = get_top_left_corner(i)
                 x, y = (x + cell_width/2, y + cell_height/2)
