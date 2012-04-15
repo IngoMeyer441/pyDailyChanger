@@ -17,6 +17,11 @@ def run_main():
             cal_pos = int(round(cfg.calendar.cal_pos[1]))
         else:
             cal_pos = cfg.calendar.cal_pos
+            
+        if cfg.memo.memo_pos[0] < 0:
+            memo_pos = int(round(cfg.memo.memo_pos[1]))
+        else:
+            memo_pos = cfg.memo.memo_pos
           
         files_to_ignore = [cfg.main.last_wallpaper_image]
          
@@ -27,7 +32,6 @@ def run_main():
                    cfg.main.stretch, 
                    cfg.main.keep_aspect_ratio,
                    cfg.calendar.draw_cal,
-                   cfg.calendar.appointment_descriptions_of_next_days,
                    util.get_appointment_list(APPOINTMENTS_CONFIG_FILE),
                    cal_pos, 
                    cfg.calendar.cal_size,
@@ -40,7 +44,15 @@ def run_main():
                    wx.Colour(*cfg.calendar.cal_line_color),
                    (wx.Colour(*cfg.calendar.cal_day_color1), wx.Colour(*cfg.calendar.cal_day_color2)),
                    (wx.Colour(*cfg.calendar.cal_background_color1), wx.Colour(*cfg.calendar.cal_background_color2)),
-                   wx.Colour(*cfg.calendar.cal_appointment_color))
+                   wx.Colour(*cfg.calendar.cal_appointment_color),
+                   cfg.memo.draw_memo,
+                   memo_pos,
+                   cfg.memo.memo_size, 
+                   cfg.memo.memo2cal_border,
+                   cfg.memo.memo_alpha, 
+                   cfg.memo.memo_font_desc,
+                   wx.Colour(*cfg.memo.memo_font_color),
+                   (wx.Colour(*cfg.memo.memo_background_color1), wx.Colour(*cfg.memo.memo_background_color2)))
         while(True):
             try:
                 w_setter.set_source_file(file_picker.get_next_file(files_to_ignore))

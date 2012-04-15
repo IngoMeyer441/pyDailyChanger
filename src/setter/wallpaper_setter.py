@@ -3,12 +3,30 @@ import time
 
 from util import util
 import calendar_image
+import memo_image
 
 CAL_TOP_LEFT      = 0
 CAL_TOP_RIGHT     = 1
 CAL_BOTTOM_LEFT   = 2
 CAL_BOTTOM_RIGHT  = 3
 CAL_SCREEN_CENTER = 4
+
+MEMO_LEFT =   0
+MEMO_TOP =    1
+MEMO_RIGHT =  2
+MEMO_BOTTOM = 3
+    
+
+
+def get_future_appointments(appointments_list, current_date):
+    year, month, day = current_date
+    index = 0
+    for app in zip(*appointments_list)[0]:
+        if app[0] > year or (app[0] == year and app[1] > month) or (app[0] == year and app[1] == month and app[2] >= day):
+            break
+        index += 1
+    return appointments_list[index:]
+
 
 class WallpaperSetter():
     '''
@@ -22,7 +40,6 @@ class WallpaperSetter():
                  stretch=False,
                  keep_aspect_ratio=True, 
                  draw_cal=True,
-                 appointment_descriptions_of_next_days=7,
                  appointment_list = [], 
                  cal_pos=CAL_BOTTOM_RIGHT, 
                  cal_size=(0.25, 0.25), 
@@ -35,14 +52,25 @@ class WallpaperSetter():
                  cal_line_color=wx.WHITE, 
                  cal_day_colors=(wx.Colour(255, 128, 0), wx.Colour(255, 128, 0)), 
                  cal_background_colors=(wx.Colour(0, 3, 153), wx.Colour(59, 136, 242)),
-                 cal_appointment_color=wx.GREEN):
+                 cal_appointment_color=wx.GREEN,
+                 draw_memo=False,
+                 memo_pos=(-1.0, MEMO_LEFT),
+                 memo_size=(0.1, 0.2), 
+                 memo2cal_border=0.01,
+                 memo_alpha=153, 
+                 memo_font_desc='Arial 8',
+                 memo_font_color=wx.BLACK,
+                 memo_background_colors=(wx.Colour(248, 255, 65), wx.Colour(252, 255, 172)),
+                 ):
         
         self.dest_file = dest_file
-        self.w_creator = WallpaperCreator(source_file, mask_color, stretch, keep_aspect_ratio, draw_cal, appointment_descriptions_of_next_days,
+        self.w_creator = WallpaperCreator(source_file, mask_color, stretch, keep_aspect_ratio, draw_cal,
                                           appointment_list, cal_pos, cal_size, cal_alpha,
                                           cal_heading_font_desc, cal_wday_font_desc, cal_mday_font_desc,
                                           cal_font_color, cal_sunday_font_color, cal_line_color, cal_day_colors,
-                                          cal_background_colors, cal_appointment_color)
+                                          cal_background_colors, cal_appointment_color,
+                                          draw_memo, memo_pos, memo_size,  memo2cal_border,
+                                          memo_alpha, memo_font_desc, memo_font_color, memo_background_colors)
         self.w_im = None
         
     def set_wallpaper(self):
@@ -73,7 +101,6 @@ class WallpaperCreator():
                  stretch=False,
                  keep_aspect_ratio=True,
                  draw_cal=True,
-                 appointment_descriptions_of_next_days=7,
                  appointment_list = [],
                  cal_pos=CAL_BOTTOM_RIGHT, 
                  cal_size=(0.25, 0.25), 
@@ -86,7 +113,16 @@ class WallpaperCreator():
                  cal_line_color=wx.WHITE,
                  cal_day_colors=(wx.Colour(255, 128, 0), wx.Colour(255, 128, 0)),
                  cal_background_colors=(wx.Colour(0, 3, 153), wx.Colour(59, 136, 242)),
-                 cal_appointment_color=wx.GREEN):
+                 cal_appointment_color=wx.GREEN,
+                 draw_memo=False,
+                 memo_pos=(-1.0, MEMO_LEFT),
+                 memo_size=(0.1, 0.2), 
+                 memo2cal_border=0.01,
+                 memo_alpha=153, 
+                 memo_font_desc='Arial 8',
+                 memo_font_color=wx.BLACK,
+                 memo_background_colors=(wx.Colour(248, 255, 65), wx.Colour(252, 255, 172)),
+                 ):
         '''
         cal_pos enthaelt entweder eine vorgefertigte Konstante oder einen Tupel, der entweder relative oder absolute
         Positionsangaben enthalten kann ( < 1: relativ, >= 1 absolut)
@@ -99,7 +135,6 @@ class WallpaperCreator():
         self.stretch = stretch
         self.keep_aspect_ratio = keep_aspect_ratio
         self.draw_cal = draw_cal
-        self.appointment_descriptions_of_next_days = appointment_descriptions_of_next_days
         self.appointment_list = appointment_list
         self.cal_pos = cal_pos
         self.cal_size = cal_size
@@ -113,10 +148,31 @@ class WallpaperCreator():
         self.cal_day_colors = cal_day_colors
         self.cal_background_colors = cal_background_colors
         self.cal_appointment_color = cal_appointment_color
+        self.draw_memo = draw_memo
+        self.memo_pos = memo_pos
+        self.memo_size = memo_size 
+        self.memo2cal_border = memo2cal_border
+        self.memo_alpha = memo_alpha 
+        self.memo_font_desc = memo_font_desc
+        self.memo_font_color = memo_font_color
+        self.memo_background_colors = memo_background_colors
         
         self.screen_size = wx.Display().GetGeometry().GetSize()
         
     def createImage(self):
+        
+        def convert_relative2absolute_pos(relative_pos):
+            '''
+            Konvertiert relative zu absoluten Koordinaten, falls diese relativ sind. Sind sie schon
+            absolut, so bleiben sie unveraendert.
+            '''
+            abs_pos = list(relative_pos)
+            for i in range(len(abs_pos)):
+                if abs_pos[i] < 1:
+                    abs_pos[i] = int(round(abs_pos[i] * self.screen_size[i]))
+            return tuple(abs_pos)
+        
+        
         w_im = wx.Image(self.source_file)
         
         # Pruefen, ob es ein gueltiges Bild ist:
@@ -145,10 +201,7 @@ class WallpaperCreator():
         # Kalender zeichnen, falls dieser erwuenscht ist:
         if self.draw_cal:
             # Groesse in Pixeln
-            abs_cal_size = list(self.cal_size)
-            for i in range(len(self.cal_size)):
-                if abs_cal_size[i] < 1:
-                    abs_cal_size[i] = int(round(abs_cal_size[i] * self.screen_size[i]))
+            abs_cal_size = convert_relative2absolute_pos(self.cal_size)
             # Position in Pixeln
             if isinstance(self.cal_pos, int):
                 if   self.cal_pos == CAL_TOP_LEFT:
@@ -162,11 +215,8 @@ class WallpaperCreator():
                 elif self.cal_pos == CAL_SCREEN_CENTER:
                     abs_cal_pos = ((self.screen_size[0]-abs_cal_size[0]) / 2, (self.screen_size[1]-abs_cal_size[1]) / 2)
             else:
-                abs_cal_pos = list(self.cal_pos)
-                for i in range(len(self.cal_pos)):
-                    if abs_cal_pos[i] < 1:
-                        abs_cal_pos[i] = int(round(abs_cal_pos[i] * self.screen_size[i]))
-            cal = calendar_image.CalendarImage(time.localtime()[0:3], abs_cal_size, self.appointment_descriptions_of_next_days,
+                abs_cal_pos = convert_relative2absolute_pos(self.cal_pos)
+            cal = calendar_image.CalendarImage(time.localtime()[0:3], abs_cal_size,
                                                self.appointment_list,
                                                self.cal_heading_font_desc,self.cal_wday_font_desc, self.cal_mday_font_desc, 
                                                self.cal_font_color, self.cal_sunday_font_color, self.cal_line_color, 
@@ -177,7 +227,41 @@ class WallpaperCreator():
             tmp_bm = w_im.ConvertToBitmap()
             tmp_dc = wx.GCDC(wx.MemoryDC(tmp_bm))
             tmp_dc.DrawBitmap(cal_im.ConvertToBitmap(), abs_cal_pos[0], abs_cal_pos[1])
-            w_im = tmp_bm.ConvertToImage()
+            
+            # Zusaetzlich Memo zeichnen, falls dies erwuenscht ist:
+            if self.draw_memo:
+                # Groesse in Pixeln
+                abs_memo_size = convert_relative2absolute_pos(self.memo_size)
+                # Rand
+                memo2cal_border = convert_relative2absolute_pos((self.memo2cal_border, ))[0]
+                # Position in Pixeln
+                if isinstance(self.memo_pos, int):
+                    if   self.memo_pos == MEMO_LEFT:
+                        x = abs_cal_pos[0] - abs_memo_size[0] - memo2cal_border
+                        y = abs_cal_pos[1] + abs_cal_size[1]/2 - abs_memo_size[1]/2     
+                    elif self.memo_pos == MEMO_TOP:
+                        x = abs_cal_pos[0] + abs_cal_size[0]/2 - abs_memo_size[0]/2
+                        y = abs_cal_pos[1] - abs_memo_size[1] - memo2cal_border
+                    elif self.memo_pos == MEMO_RIGHT:
+                        x = abs_cal_pos[0] + abs_cal_size[0] + memo2cal_border
+                        y = abs_cal_pos[1] + abs_cal_size[1]/2 - abs_memo_size[1]/2 
+                    elif self.memo_pos == MEMO_BOTTOM:
+                        x = abs_cal_pos[0] + abs_cal_size[0]/2 - abs_memo_size[0]/2
+                        y = abs_cal_pos[1] + abs_cal_size[1] + memo2cal_border
+                    x = min(self.screen_size[0]-abs_memo_size[0], max(0, x))
+                    y = min(self.screen_size[1]-abs_memo_size[1], max(0, y))
+                    abs_memo_pos = (x, y)
+                else:
+                    abs_memo_pos = convert_relative2absolute_pos(self.memo_pos)
+                memo = memo_image.MemoImage(get_future_appointments(self.appointment_list, time.localtime()[0:3]),
+                                            abs_memo_size, self.memo_font_desc, 
+                                            self.memo_font_color, self.memo_background_colors)
+                memo_im = memo.get_memo_image().ConvertToImage()
+                memo_im.InitAlpha()
+                memo_im.SetAlphaData(chr(self.memo_alpha) * (abs_memo_size[0]*abs_memo_size[1]))
+                tmp_dc.DrawBitmap(memo_im.ConvertToBitmap(), abs_memo_pos[0], abs_memo_pos[1])
+                     
+            w_im = tmp_bm.ConvertToImage()   
             
         return w_im
         
