@@ -89,7 +89,6 @@ def draw_memo(dc, pos_tuple, size_tuple, bg_colors, sorted_appointment_list):
         else:
             break
         day_number += 1
-    print day_number
     # Falls noch Termine fehlen, so fuege vom naechsten nicht passenden Termin noch so viele Zeilen hinzu, wie moeglich:
     if day_number < len(sorted_appointment_list) - 1:
         day = sorted_appointment_list[day_number+1]

@@ -18,6 +18,16 @@ MEMO_BOTTOM = 3
     
 
 
+def get_future_appointments(appointments_list, current_date):
+    year, month, day = current_date
+    index = 0
+    for app in zip(*appointments_list)[0]:
+        if app[0] > year or (app[0] == year and app[1] > month) or (app[0] == year and app[1] == month and app[2] >= day):
+            break
+        index += 1
+    return appointments_list[index:]
+
+
 class WallpaperSetter():
     '''
     Uebernimmt das Setzen des neuen Hintergrundbildes
@@ -243,9 +253,9 @@ class WallpaperCreator():
                     abs_memo_pos = (x, y)
                 else:
                     abs_memo_pos = convert_relative2absolute_pos(self.memo_pos)
-                memo = memo_image.MemoImage(self.appointment_list, abs_memo_size,
-                                            self.memo_font_desc, self.memo_font_color,
-                                            self.memo_background_colors)
+                memo = memo_image.MemoImage(get_future_appointments(self.appointment_list, time.localtime()[0:3]),
+                                            abs_memo_size, self.memo_font_desc, 
+                                            self.memo_font_color, self.memo_background_colors)
                 memo_im = memo.get_memo_image().ConvertToImage()
                 memo_im.InitAlpha()
                 memo_im.SetAlphaData(chr(self.memo_alpha) * (abs_memo_size[0]*abs_memo_size[1]))
