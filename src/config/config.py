@@ -15,7 +15,7 @@ FILE_TYPE_LIST = ['.bmp', '.jpg', '.jpeg', '.png']
 # cal_pos_X == -1 bedeutet, dass cal_pos_Y die Position des Kalenders per Konstante angibt
 STD_CONFIG = {'main':      {'dest_file': 'wallpaper.bmp', 'mask_color': (0, 0, 0), 'stretch': False, 'keep_aspect_ratio': True,
                             'last_wallpaper_image': ''},
-              'calendar' : {'draw_cal': False, 'appointment_descriptions_of_next_days': 7,
+              'calendar':  {'draw_cal': False,
                             'cal_pos': (-1.0, wallpaper_setter.CAL_BOTTOM_RIGHT),
                             'cal_size': (0.25, 0.25), 'cal_alpha': 153,
                             'cal_heading_font_desc': 'Arial 10',
@@ -28,7 +28,16 @@ STD_CONFIG = {'main':      {'dest_file': 'wallpaper.bmp', 'mask_color': (0, 0, 0
                             'cal_day_color2': (255, 128, 0),
                             'cal_background_color1': (0, 3, 153),
                             'cal_background_color2': (59, 136, 242),
-                            'cal_appointment_color': (245, 229, 43)}
+                            'cal_appointment_color': (245, 229, 43)},
+              'memo':      {'draw_memo': False,
+                            'memo_pos': (-1.0, wallpaper_setter.MEMO_LEFT),
+                            'memo_size': (0.1, 0.2), 'memo2cal_border': 0.01,
+                            'memo_alpha': 153, 
+                            'memo_font_desc': 'Arial 10',
+                            'memo_font_color': (0, 0, 0),
+                            'memo_background_color1': (248, 255, 65),
+                            'memo_background_color2': (252, 255, 172),
+                            } 
               }
 
               
