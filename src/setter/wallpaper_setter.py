@@ -40,7 +40,10 @@ class WallpaperSetter():
                  stretch=False,
                  keep_aspect_ratio=True, 
                  draw_cal=True,
-                 appointment_list = [], 
+                 appointment_list = [],
+                 continuous=False, 
+                 continuous_rows=7, 
+                 current_day_row=1, 
                  cal_pos=CAL_BOTTOM_RIGHT, 
                  cal_size=(0.25, 0.25), 
                  cal_alpha=153, 
@@ -65,7 +68,8 @@ class WallpaperSetter():
         
         self.dest_file = dest_file
         self.w_creator = WallpaperCreator(source_file, mask_color, stretch, keep_aspect_ratio, draw_cal,
-                                          appointment_list, cal_pos, cal_size, cal_alpha,
+                                          appointment_list, continuous, continuous_rows, current_day_row,
+                                          cal_pos, cal_size, cal_alpha,
                                           cal_heading_font_desc, cal_wday_font_desc, cal_mday_font_desc,
                                           cal_font_color, cal_sunday_font_color, cal_line_color, cal_day_colors,
                                           cal_background_colors, cal_appointment_color,
@@ -102,6 +106,9 @@ class WallpaperCreator():
                  keep_aspect_ratio=True,
                  draw_cal=True,
                  appointment_list = [],
+                 continuous=False, 
+                 continuous_rows=7, 
+                 current_day_row=1,
                  cal_pos=CAL_BOTTOM_RIGHT, 
                  cal_size=(0.25, 0.25), 
                  cal_alpha=153, 
@@ -136,6 +143,9 @@ class WallpaperCreator():
         self.keep_aspect_ratio = keep_aspect_ratio
         self.draw_cal = draw_cal
         self.appointment_list = appointment_list
+        self.continuous = continuous
+        self.continuous_rows = continuous_rows
+        self.current_day_row = current_day_row
         self.cal_pos = cal_pos
         self.cal_size = cal_size
         self.cal_heading_font_desc = cal_heading_font_desc
@@ -218,6 +228,7 @@ class WallpaperCreator():
                 abs_cal_pos = convert_relative2absolute_pos(self.cal_pos)
             cal = calendar_image.CalendarImage(time.localtime()[0:3], abs_cal_size,
                                                self.appointment_list,
+                                               self.continuous, self.continuous_rows, self.current_day_row,
                                                self.cal_heading_font_desc,self.cal_wday_font_desc, self.cal_mday_font_desc, 
                                                self.cal_font_color, self.cal_sunday_font_color, self.cal_line_color, 
                                                self.cal_day_colors, self.cal_background_colors, self.cal_appointment_color)
