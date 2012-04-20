@@ -5,8 +5,8 @@ import time
 import os.path
 
 if sys.platform.startswith('win'):
-    from ctypes import windll
-    import win32con
+    import pythoncom
+    from win32com.shell import shell, shellcon
 elif sys.platform.startswith('darwin'):
     from appscript import app, mactypes
 
@@ -170,7 +170,9 @@ def set_wallpaper(file):
     elif manager == UNITY:
         subprocess.Popen('gsettings set org.gnome.desktop.background picture-uri'.split(' ') + ['file://' + os.path.abspath(file)]).communicate()
     elif manager == WIN:
-        windll.user32.SystemParametersInfoA(win32con.SPI_SETDESKWALLPAPER, 0, file, win32con.SPIF_UPDATEINIFILE | win32con.SPIF_SENDWININICHANGE)
+        iad = pythoncom.CoCreateInstance(shell.CLSID_ActiveDesktop, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IActiveDesktop)
+        iad.SetWallpaper(os.path.abspath(file), 0)
+        iad.ApplyChanges(shellcon.AD_APPLY_ALL)
     elif manager == MAC:
         app('Finder').desktop_picture.set(mactypes.File(file))
         
